@@ -15,5 +15,6 @@ Sketch para **Arduino Mega 2560** que lee 4 potenciómetros usando un **ADS1115*
 - Inicializa Serial a 9600.
 - Inicia ADS1115 en dirección 0x49.
 - Lee canales `A0`, `A1`, `A2`, `A3` del ADS1115.
-- Imprime continuamente:
-  - `POT0`, `POT1`, `POT2`, `POT3`
+- Usa lógica de tiempo con `millis()` (sin `delay` en el loop):
+  - Lectura de ADC cada **100 ms**.
+  - Impresión por Serial cada **200 ms**.

@@ -4,7 +4,12 @@
 Adafruit_ADS1115 ads;
 
 const uint8_t ADS_ADDRESS = 0x49;
-const unsigned long READ_INTERVAL_MS = 200;
+const unsigned long READ_INTERVAL_MS = 100;
+const unsigned long PRINT_INTERVAL_MS = 200;
+
+int16_t potValues[4] = {0, 0, 0, 0};
+unsigned long lastReadMs = 0;
+unsigned long lastPrintMs = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -15,7 +20,7 @@ void setup() {
   if (!ads.begin(ADS_ADDRESS)) {
     Serial.println("Error: no se encontro ADS1115 en la direccion 0x49");
     while (true) {
-      delay(1000);
+      // Bloqueo intencional si no hay comunicacion I2C con el ADC
     }
   }
 
@@ -24,22 +29,34 @@ void setup() {
 
   Serial.println("ADS1115 listo en 0x49");
   Serial.println("Leyendo 4 potenciometros (A0-A3)...");
+
+  unsigned long now = millis();
+  lastReadMs = now;
+  lastPrintMs = now;
 }
 
 void loop() {
-  int16_t pot0 = ads.readADC_SingleEnded(0);
-  int16_t pot1 = ads.readADC_SingleEnded(1);
-  int16_t pot2 = ads.readADC_SingleEnded(2);
-  int16_t pot3 = ads.readADC_SingleEnded(3);
+  unsigned long now = millis();
 
-  Serial.print("POT0: ");
-  Serial.print(pot0);
-  Serial.print("\tPOT1: ");
-  Serial.print(pot1);
-  Serial.print("\tPOT2: ");
-  Serial.print(pot2);
-  Serial.print("\tPOT3: ");
-  Serial.println(pot3);
+  // Lectura cada 100 ms sin usar delay (dt con millis)
+  if (now - lastReadMs >= READ_INTERVAL_MS) {
+    lastReadMs = now;
+    potValues[0] = ads.readADC_SingleEnded(0);
+    potValues[1] = ads.readADC_SingleEnded(1);
+    potValues[2] = ads.readADC_SingleEnded(2);
+    potValues[3] = ads.readADC_SingleEnded(3);
+  }
 
-  delay(READ_INTERVAL_MS);
+  // Impresion cada 200 ms sin bloquear el loop
+  if (now - lastPrintMs >= PRINT_INTERVAL_MS) {
+    lastPrintMs = now;
+    Serial.print("POT0: ");
+    Serial.print(potValues[0]);
+    Serial.print("\tPOT1: ");
+    Serial.print(potValues[1]);
+    Serial.print("\tPOT2: ");
+    Serial.print(potValues[2]);
+    Serial.print("\tPOT3: ");
+    Serial.println(potValues[3]);
+  }
 }
